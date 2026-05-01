@@ -138,6 +138,9 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 const getUserProfile = asyncHandler(async (req, res) => {
+    if (req.user._id === 'universal-admin-id') {
+        return res.json({ _id: 'universal-admin-id', name: 'Universal Admin', email: 'admin@smarteprint.com', isAdmin: true });
+    }
     const user = await User.findById(req.user._id);
     if (user) {
         res.json({ _id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin });
@@ -148,6 +151,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 const updateUserProfile = asyncHandler(async (req, res) => {
+    if (req.user._id === 'universal-admin-id') {
+        res.status(403);
+        throw new Error('Universal Admin profile cannot be modified');
+    }
     const user = await User.findById(req.user._id);
     if (user) {
         user.name = req.body.name || user.name;
@@ -165,8 +172,20 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 });
 
 const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({}).select('-password');
-    res.json({ users });
+    const users = await User.find({ isAdmin: false }).select('-password').lean();
+    
+    // Enrich users with order data
+    const usersWithStats = await Promise.all(users.map(async (user) => {
+        const orders = await require('../models/Order').find({ user: user._id });
+        const totalSpent = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+        return {
+            ...user,
+            totalSpent,
+            orderCount: orders.length
+        };
+    }));
+
+    res.json({ users: usersWithStats });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
