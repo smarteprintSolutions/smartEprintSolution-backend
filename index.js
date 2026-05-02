@@ -72,6 +72,17 @@ app.get('/', (req, res) => {
     res.json({ status: 'success', message: 'Smart ePrint API is running smoothly.' });
 });
 
+// Diagnostic route to check database connection (helps verify Vercel Env Vars)
+app.get('/api/db-status', (req, res) => {
+    const mongoose = require('mongoose');
+    res.json({ 
+        status: 'online',
+        databaseName: mongoose.connection.name,
+        databaseHost: mongoose.connection.host,
+        environment: process.env.NODE_ENV || 'not set'
+    });
+});
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
@@ -141,9 +152,16 @@ app.use(errorHandler);
  * Start Server
  */
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`\n🚀 Server is live at http://127.0.0.1:${PORT}`);
-    console.log(`📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
-});
 
-module.exports = { io };
+// Vercel handles the listening in production, so we only listen manually in local development
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    server.listen(PORT, () => {
+        console.log(`\n🚀 Server is live at http://127.0.0.1:${PORT}`);
+        console.log(`📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+    });
+}
+
+// Export the app for Vercel
+module.exports = app;
+module.exports.server = server;
+module.exports.io = io;
