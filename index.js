@@ -24,42 +24,44 @@ const app = express();
 const server = http.createServer(app);
 
 /**
- * Socket.io Configuration
- * Configures real-time communication for support chat and live updates.
+ * CORS Configuration
+ * Dynamically supports local development, production, and Vercel preview URLs.
  */
-const io = new Server(server, {
-    cors: {
-        origin: [
-            "https://smarteprintfrontend.vercel.app",
-            "https://smart-eprint-solution.vercel.app",
-            "https://smart-eprint-solution.vercel.app/",
-            "https://smarteprint.com",
-            "https://smarteprint.com/",
-            "http://localhost:5173",
-            "http://localhost:5173/",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:5173/"
-        ],
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
+const allowedOrigins = [
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173", 
+    "https://smarteprintfrontend.vercel.app", 
+    "https://smart-eprint-solution.vercel.app",
+    "https://smarteprint.com"
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        
+        const isVercelPreview = origin.match(/^https:\/\/smart-eprint-solution-frontend-.*\.vercel\.app$/);
+        const isAllowedStatic = allowedOrigins.indexOf(origin) !== -1;
+        const isRootDomain = origin === "https://smarteprint.com" || origin === "https://smarteprint.com/";
+
+        if (isAllowedStatic || isVercelPreview || isRootDomain) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+// Apply CORS to Express
+app.use(cors(corsOptions));
 
 /**
- * Middleware Configuration
+ * Socket.io Configuration
  */
-app.use(cors({
-    origin: [
-        "http://localhost:5173", 
-        "http://127.0.0.1:5173", 
-        "https://smarteprintfrontend.vercel.app", 
-        "https://smart-eprint-solution.vercel.app",
-        "https://smart-eprint-solution.vercel.app/",
-        "https://smarteprint.com",
-        "https://smarteprint.com/"
-    ],
-    credentials: true
-}));
+const io = new Server(server, { cors: corsOptions });
+
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
