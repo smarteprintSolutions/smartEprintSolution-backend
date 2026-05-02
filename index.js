@@ -141,9 +141,15 @@ app.use(errorHandler);
  * Start Server
  */
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`\n🚀 Server is live at http://127.0.0.1:${PORT}`);
-    console.log(`📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
-});
 
-module.exports = { io };
+// Export for Vercel Serverless
+if (process.env.VERCEL) {
+    module.exports = app;
+} else {
+    server.listen(PORT, () => {
+        console.log(`\n🚀 Server is live at http://127.0.0.1:${PORT}`);
+        console.log(`📂 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+    });
+}
+
+module.exports = app;
