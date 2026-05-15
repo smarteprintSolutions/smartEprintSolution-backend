@@ -3,6 +3,7 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const jwt = require('jsonwebtoken');
 const { generateOTP, sendOTPEmail } = require('../utils/emailService');
+const Order = require('../models/Order');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -176,7 +177,7 @@ const getUsers = asyncHandler(async (req, res) => {
     
     // Enrich users with order data
     const usersWithStats = await Promise.all(users.map(async (user) => {
-        const orders = await require('../models/Order').find({ user: user._id });
+        const orders = await Order.find({ user: user._id });
         const totalSpent = orders.reduce((acc, order) => acc + order.totalPrice, 0);
         return {
             ...user,

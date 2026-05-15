@@ -122,12 +122,20 @@ const sendOTPEmail = async (email, otp, type = 'registration') => {
     } catch (error) {
         console.error(`❌ SMTP: Transmission failed for ${email} ->`, error.message);
         
-        const tip = process.env.EMAIL_SERVICE === 'brevo' 
-            ? `TIP: Ensure '${process.env.OTP_EMAIL_FROM || process.env.EMAIL_FROM}' is a verified sender in your Brevo dashboard.`
-            : 'TIP: Check your SMTP credentials and network connection.';
+        // Detailed error for Brevo / SMTP providers
+        if (error.response) {
+            console.error('SMTP Response:', error.response);
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log('\n------------------------------------------------------------');
+            console.log('⚠️ [DEV MODE] SMTP FAILED BUT CONTINUING');
+            console.log('   The OTP has been printed to the console above.');
+            console.log('   Check if your EMAIL_FROM is verified in your SMTP dashboard.');
+            console.log('------------------------------------------------------------\n');
+            return { message: 'OTP logged to console (Email delivery failed)' };
+        }
             
-        console.log(tip);
-        
         throw new Error(`Email Service Unavailable: ${error.message}`);
     }
 };
