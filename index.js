@@ -94,6 +94,7 @@ app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/chats', require('./routes/chatRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/admin', require('./routes/setupRoutes'));
+app.use('/api/shipping', require('./routes/shippingRoutes'));
 
 /**
  * Socket.io Middleware & Event Handlers
