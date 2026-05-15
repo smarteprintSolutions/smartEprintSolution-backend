@@ -33,6 +33,7 @@ const allowedOrigins = [
     "https://smarteprintfrontend.vercel.app", 
     "https://smart-eprint-solution.vercel.app",
     "https://smart-eprint-solution-frontend.vercel.app",
+    "https://frontend-nine-tawny-93.vercel.app",
     "https://smarteprint.com"
 ];
 
@@ -40,11 +41,11 @@ const corsOptions = {
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         
-        const isVercelPreview = origin.match(/^https:\/\/smart-eprint-solution-frontend-.*\.vercel\.app$/);
+        const isVercelApp = origin.endsWith('.vercel.app');
         const isAllowedStatic = allowedOrigins.indexOf(origin) !== -1;
         const isRootDomain = origin === "https://smarteprint.com" || origin === "https://smarteprint.com/";
 
-        if (isAllowedStatic || isVercelPreview || isRootDomain) {
+        if (isAllowedStatic || isVercelApp || isRootDomain) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
